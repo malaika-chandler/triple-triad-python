@@ -1,4 +1,6 @@
-from game import Element, Card
+from components import Element, Card
+
+
 # import numpy
 
 
@@ -141,6 +143,14 @@ class Cards:
         # Only one of these cards in play at a time
         self.no_duplicates_in_play_level = 8
 
+    def __str__(self):
+        """
+        Returns a concatenated string of Cards contained in the class
+        :return:
+        """
+        return "\n".join("\n".join(str(card) for card in cards) for cards in self.cards.values())
+
     def deal_cards(self):
         # TODO use rules to specify distribution of cards to return
         pass
+
