@@ -1,56 +1,5 @@
-from enum import Enum, auto
 import constants
-
-
-class Element(Enum):
-    NONE = auto()
-    FIRE = auto()
-    EARTH = auto()
-    ICE = auto()
-    THUNDER = auto()
-    HOLY = auto()
-    POISON = auto()
-    WIND = auto()
-    WATER = auto()
-
-    def __str__(self):
-        return self.name.capitalize()
-
-
-class Card:
-
-    def __init__(self, name, top, left, right, bottom, element=Element.NONE):
-        self.name = name
-        self.top = top
-        self.left = left
-        self.right = right
-        self.bottom = bottom
-        self.element = element
-
-    def __str__(self):
-        return self.name
-
-    def __eq__(self, other):
-        if other is None:
-            return False
-        if other.name == self.name:
-            return True
-        return False
-
-    def get_top(self):
-        return self.top
-
-    def get_left(self):
-        return self.left
-
-    def get_right(self):
-        return self.right
-
-    def get_bottom(self):
-        return self.bottom
-
-    def get_element(self):
-        return self.element
+from cards import Cards
 
 
 class AgentState:
@@ -82,6 +31,9 @@ class Grid:
 class Game:
 
     def __init__(self):
+        # This class will maintain all of the cards
+        cards_handler = Cards()
+        print(cards_handler)
         pass
 
     def run(self):
