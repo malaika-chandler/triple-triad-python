@@ -39,14 +39,30 @@ class Element(Enum):
             return ''
 
 
+class Direction:
+    TOP = 'top'
+    BOTTOM = 'bottom'
+    LEFT = 'left'
+    RIGHT = 'right'
+
+    OPPOSITE = {
+        TOP: BOTTOM,
+        BOTTOM: TOP,
+        RIGHT: LEFT,
+        LEFT: RIGHT
+    }
+
+
 class Card:
 
     def __init__(self, name, top, left, right, bottom, element=Element.NONE):
         self.name = name
-        self.top = top
-        self.left = left
-        self.right = right
-        self.bottom = bottom
+        self.ranks = {
+            Direction.TOP: top,
+            Direction.BOTTOM: bottom,
+            Direction.LEFT: left,
+            Direction.RIGHT: right
+        }
         self.element = element
 
     def __str__(self):
@@ -62,9 +78,11 @@ class Card:
                         '{:^' + half_width + 's}{:^' + half_width + 's}\n' \
                         '{:^' + half_width + 's}{:^' + half_width + 's}\n'
         return format_string.format(self.name,
-                                    self.get_string_rank(self.top), 'Element',
-                                    self.get_string_rank(self.left) + ' ' + self.get_string_rank(self.right),
-                                    string_element, self.get_string_rank(self.bottom), self.element.character_representation())
+                                    self.get_string_rank(self.ranks[Direction.TOP]), 'Element',
+                                    self.get_string_rank(self.ranks[Direction.LEFT]) + ' ' +
+                                    self.get_string_rank(self.ranks[Direction.RIGHT]),
+                                    string_element, self.get_string_rank(self.ranks[Direction.BOTTOM]),
+                                    self.element.character_representation())
 
     def __eq__(self, other):
         if other is None:
@@ -83,17 +101,10 @@ class Card:
     def get_name(self):
         return self.name
 
-    def get_top(self):
-        return self.top
-
-    def get_left(self):
-        return self.left
-
-    def get_right(self):
-        return self.right
-
-    def get_bottom(self):
-        return self.bottom
+    def get_rank(self, direction):
+        if direction in Direction:
+            return self.ranks[direction]
+        return -1
 
     def get_element(self):
         return self.element
