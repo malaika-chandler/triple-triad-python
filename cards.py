@@ -1,7 +1,8 @@
 from components import Element, Card
-
+import constants
 
 # import numpy
+import random
 
 
 class Cards:
@@ -152,5 +153,40 @@ class Cards:
 
     def deal_cards(self):
         # TODO use rules to specify distribution of cards to return
-        pass
+
+        # Returns a list of lists of cards by level
+        cards_to_filter = list(self.cards.values())
+
+        # arbitrary for now
+        standard_deviation = 15
+
+        # Total number of cards divided by 2
+        cards_per_level = len(cards_to_filter[0])
+        total_cards = len(cards_to_filter) * cards_per_level
+        mean = total_cards / 2
+
+        hands = []
+        while len(hands) < constants.NUMBER_OF_CARDS_IN_HAND * constants.NUMBER_OF_PLAYERS:
+            number = round(random.gauss(mean, standard_deviation))
+            if 0 <= number < total_cards:
+                # Cards in lists separated by card level
+                card_level_index = number // cards_per_level
+
+                # List is 0 indexed, so level is index plus 1
+                card_level = card_level_index + 1
+
+                # Card itself will be at some index in level list
+                card_index_in_level = number % cards_per_level
+
+                selected_card = cards_to_filter[card_level_index][card_index_in_level]
+
+                # Only one card in play after a certain level
+                if card_level >= self.no_duplicates_in_play_level and selected_card in hands:
+                    continue
+
+                hands.append(selected_card)
+
+        # Split into separate hands and return
+        return hands[:constants.NUMBER_OF_CARDS_IN_HAND], hands[constants.NUMBER_OF_CARDS_IN_HAND:]
+
 
