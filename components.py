@@ -80,6 +80,9 @@ class Card:
         # Rank is 10
         return 'A'
 
+    def get_name(self):
+        return self.name
+
     def get_top(self):
         return self.top
 
