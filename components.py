@@ -39,7 +39,7 @@ class Element(Enum):
             return ''
 
 
-class Direction:
+class Direction(Enum):
     TOP = 'top'
     BOTTOM = 'bottom'
     LEFT = 'left'
@@ -51,6 +51,17 @@ class Direction:
         RIGHT: LEFT,
         LEFT: RIGHT
     }
+
+    def get_opposite(self):
+        if self.TOP:
+            return Direction.BOTTOM
+        if self.BOTTOM:
+            return Direction.TOP
+        if self.RIGHT:
+            return Direction.LEFT
+        if self.LEFT:
+            return Direction.RIGHT
+        return None
 
 
 class Card:
