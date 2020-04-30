@@ -112,8 +112,10 @@ class Card:
     def get_name(self):
         return self.name
 
-    def get_rank(self, direction):
+    def get_rank(self, direction, as_string=False):
         if direction in Direction:
+            if as_string:
+                return self.get_string_rank(self.ranks[direction])
             return self.ranks[direction]
         return -1
 
