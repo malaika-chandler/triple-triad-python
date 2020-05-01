@@ -45,21 +45,14 @@ class Direction(Enum):
     LEFT = 'left'
     RIGHT = 'right'
 
-    OPPOSITE = {
-        TOP: BOTTOM,
-        BOTTOM: TOP,
-        RIGHT: LEFT,
-        LEFT: RIGHT
-    }
-
     def get_opposite(self):
-        if self.TOP:
+        if self is self.TOP:
             return Direction.BOTTOM
-        if self.BOTTOM:
+        if self is self.BOTTOM:
             return Direction.TOP
-        if self.RIGHT:
+        if self is self.RIGHT:
             return Direction.LEFT
-        if self.LEFT:
+        if self is self.LEFT:
             return Direction.RIGHT
         return None
 
