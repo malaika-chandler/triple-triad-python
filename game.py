@@ -4,14 +4,6 @@ from components import Direction
 import utils
 
 
-# class AgentState:
-#
-#     def __init__(self):
-#         self.cards_in_hand = []
-#         self.is_turn = False
-#         pass
-
-
 class GameState:
 
     def __init__(self, agents, rules):
@@ -98,58 +90,12 @@ class GameBoardLocation:
     def get_coordinates(self):
         return self.grid_coordinates
 
-    def _calculate_direction_of_neighbor(self, neighbor):
-        if neighbor in self.neighbors.values():
-            direction = None
-            # TODO There's got to be a better waaay
-            for neighbor_direction, neighbor_object in self.neighbors.items():
-                if neighbor_object is neighbor:
-                    direction = neighbor_direction
-                    break
-            return direction
-        return None
-
-    def __lt__(self, other):
-        if self is other:
+    def can_flip(self, neighbor, direction):
+        if self is neighbor:
             return False
-        direction = self._calculate_direction_of_neighbor(other)
-        opposite_direction = Direction.get_opposite(direction)
-        return self.calculate_location_value(direction) < other.calculate_location_value(opposite_direction)
-
-    def __le__(self, other):
-        if self is other:
-            return True
-        direction = self._calculate_direction_of_neighbor(other)
-        opposite_direction = Direction.get_opposite(direction)
-        return self.calculate_location_value(direction) <= other.calculate_location_value(opposite_direction)
-
-    def __eq__(self, other):
-        if self is other:
-            return True
-        direction = self._calculate_direction_of_neighbor(other)
-        opposite_direction = Direction.get_opposite(direction)
-        return self.calculate_location_value(direction) == other.calculate_location_value(opposite_direction)
-
-    def __ne__(self, other):
-        if self is other:
-            return False
-        direction = self._calculate_direction_of_neighbor(other)
-        opposite_direction = Direction.get_opposite(direction)
-        return self.calculate_location_value(direction) != other.calculate_location_value(opposite_direction)
-
-    def __gt__(self, other):
-        if self is other:
-            return False
-        direction = self._calculate_direction_of_neighbor(other)
-        opposite_direction = Direction.get_opposite(direction)
-        return self.calculate_location_value(direction) > other.calculate_location_value(opposite_direction)
-
-    def __ge__(self, other):
-        if self is other:
-            return True
-        direction = self._calculate_direction_of_neighbor(other)
-        opposite_direction = Direction.get_opposite(direction)
-        return self.calculate_location_value(direction) >= other.calculate_location_value(opposite_direction)
+        opposite_direction = direction.get_opposite()
+        return self.calculate_location_value(direction) > neighbor.calculate_location_value(opposite_direction)
+        pass
 
     @staticmethod
     def _calculate_neighbors(coordinates):
@@ -176,7 +122,7 @@ class Grid:
         self.rules = rules
 
         # Create a GameBoardLocation object for each space in the grid
-        self.data = [[GameBoardLocation((x, y)) for y in range(self.height)] for x in range(self.width)]
+        self.data = [[GameBoardLocation((x, y)) for x in range(self.width)] for y in range(self.height)]
 
         # Link GameBoardLocations now that they're initialized
         for x in range(self.width):
@@ -186,13 +132,14 @@ class Grid:
 
         self.initialize()
 
+    def get_row(self, row_index):
+        if 0 <= row_index < self.height:
+            return self.data[row_index]
+        return None
+
     def __getitem__(self, coordinates):
         x, y = coordinates
-        return self.data[x][y]
-
-    # def __setitem__(self, coordinates, item):
-    #     x, y = coordinates
-    #     self.data[x][y] = item
+        return self.data[y][x]
 
     def get_free_spaces_dict(self):
         free_spaces = {}
@@ -239,6 +186,13 @@ class Game:
     def increment_agent_turn(self):
         self.game_state.increment_player_turn()
 
+    def calculate_winner(self):
+        res = all(agent == self.agents[0] for agent in self.agents)
+        if res:
+            return None
+        else:
+            return max(self.agents)
+
     def run(self):
         # Start the game
         game_board = self.game_state.get_game_board()
@@ -254,6 +208,8 @@ class Game:
             # Player's turn
             current_player = self.game_state.get_current_player()
 
+            self.display.display_game_state(self.game_state)
+
             legal_cards, legal_grid_spaces = self.game_state.get_legal_agent_actions(current_player)
 
             # Get player move
@@ -263,9 +219,12 @@ class Game:
                 card_index, coordinates = result
 
             game_board.place_card(current_player,
-                                  legal_cards[card_index],
+                                  current_player.play_card(legal_cards[card_index]),
                                   coordinates)
 
             self.is_game_over = game_board.count_free_spaces == 0
 
             self.increment_agent_turn()
+
+        self.game_state.winner = self.calculate_winner()
+        self.display.display_end_game(self.game_state)
