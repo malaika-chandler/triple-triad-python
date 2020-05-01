@@ -181,7 +181,9 @@ class Cards:
                 selected_card = cards_to_filter[card_level_index][card_index_in_level]
 
                 # Only one card in play after a certain level
-                if card_level >= self.no_duplicates_in_play_level and selected_card in hands:
+                # And only one PuPu card!
+                if (card_level >= self.no_duplicates_in_play_level or selected_card.get_name() == 'PuPu') \
+                        and selected_card in hands:
                     continue
 
                 hands.append(selected_card)
