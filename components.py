@@ -16,28 +16,6 @@ class Element(Enum):
     def __str__(self):
         return self.name.capitalize()
 
-    def character_representation(self):
-        if self == Element.NONE:
-            return ''
-        elif self == Element.FIRE:
-            return '🔥'
-        elif self == Element.EARTH:
-            return '🌏'
-        elif self == Element.ICE:
-            return '❄️'
-        elif self == Element.THUNDER:
-            return '⚡️'
-        elif self == Element.HOLY:
-            return '✨'
-        elif self == Element.POISON:
-            return '☠'
-        elif self == Element.WIND:
-            return '🌪'
-        elif self == Element.WATER:
-            return '💧'
-        else:
-            return ''
-
 
 class Direction(Enum):
     TOP = 'top'
@@ -86,7 +64,7 @@ class Card:
                                     self.get_string_rank(self.ranks[Direction.LEFT]) + ' ' +
                                     self.get_string_rank(self.ranks[Direction.RIGHT]),
                                     string_element, self.get_string_rank(self.ranks[Direction.BOTTOM]),
-                                    self.element.character_representation())
+                                    str(self.element))
 
     def __eq__(self, other):
         if other is None:

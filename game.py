@@ -1,6 +1,6 @@
 import constants
 from cards import Cards
-from components import Direction
+from components import Direction, Element
 import utils
 
 
@@ -52,7 +52,8 @@ class GameBoardLocation:
 
         self.is_elemental_rule_in_play = is_elemental_rule_in_play
         self.has_element = False
-        self.element = None
+        self.element = Element.NONE
+        self._get_element_for_grid()
 
         self.grid_coordinates = (coordinates[0], coordinates[1])
         self.owner = None
@@ -64,8 +65,9 @@ class GameBoardLocation:
         self.has_card = False
         self.placed_card = None
         self.has_element = False
-        self.element = None
         self.owner = None
+
+        self._get_element_for_grid()
 
     def place_card(self, agent, card):
         self.has_card = True
@@ -90,12 +92,31 @@ class GameBoardLocation:
     def get_coordinates(self):
         return self.grid_coordinates
 
+    def get_element(self):
+        return self.element
+
+    def has_elemental_conflict(self):
+        return self.has_card and self.element != Element.NONE and self.element != self.placed_card.get_element()
+
+    def has_elemental_agreement(self):
+        return self.has_card and self.element != Element.NONE and self.element == self.placed_card.get_element()
+
     def can_flip(self, neighbor, direction):
         if self is neighbor:
             return False
         opposite_direction = direction.get_opposite()
         return self.calculate_location_value(direction) > neighbor.calculate_location_value(opposite_direction)
-        pass
+
+    def _get_element_for_grid(self):
+        if self.is_elemental_rule_in_play:
+            if utils.flip_coin():
+                self.element = utils.random_choice([e for e in Element])
+                if self.element != Element.NONE:
+                    self.has_element = True
+            else:
+                self.element = Element.NONE
+        else:
+            self.element = Element.NONE
 
     @staticmethod
     def _calculate_neighbors(coordinates):
@@ -122,7 +143,9 @@ class Grid:
         self.rules = rules
 
         # Create a GameBoardLocation object for each space in the grid
-        self.data = [[GameBoardLocation((x, y)) for x in range(self.width)] for y in range(self.height)]
+        self.data = [
+            [GameBoardLocation((x, y), is_elemental_rule_in_play=rules.is_elemental) for x in range(self.width)]
+            for y in range(self.height)]
 
         # Link GameBoardLocations now that they're initialized
         for x in range(self.width):

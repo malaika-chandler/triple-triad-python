@@ -61,13 +61,13 @@ class Agent:
 
 class Rules:
 
-    def __init__(self):
+    def __init__(self, is_elemental=False):
         # Open and Random always
         self.is_open = True
         self.is_random = True
 
         # Card flip rules
-        self.is_elemental = False
+        self.is_elemental = is_elemental
         self.is_same = False
         self.is_same_wall = False
         self.is_plus = False
@@ -85,9 +85,9 @@ class Rules:
         count_cards_flipped = 0
 
         # Standard flip rules
-        # TODO add checks in for elemental for standard flips
         for direction, neighbor in challenger.neighbors.items():
             if neighbor.has_card and neighbor.owner.index != challenger.owner.index:
+                # GameBoardLocation checks if element rule in play
                 if challenger.can_flip(neighbor, direction):
                     neighbor.owner.decrement_score()
                     neighbor.set_owner(challenger.owner)
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     display = TripleTriadGraphics()
 
     # Set up the rules
-    rules = Rules()
+    rules = Rules(is_elemental=True)
 
     # Set up the game
     game = Game(agents, display, rules)
