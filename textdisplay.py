@@ -2,17 +2,21 @@ import colorama  # Fore, Back, Style
 from components import Direction, Element
 
 
+class TripleTriadColors:
+    COLOR_RESET = colorama.Style.RESET_ALL
+    AGENT_COLORS = [
+        colorama.Fore.LIGHTBLUE_EX,
+        colorama.Fore.LIGHTMAGENTA_EX
+    ]
+    COLOR_NEGATIVE = colorama.Fore.RED
+    COLOR_POSITIVE = colorama.Fore.GREEN
+
+
 class TripleTriadGraphics:
 
     def __init__(self):
         colorama.init()
-        self.color_reset = colorama.Style.RESET_ALL
-        self.colors = [
-            colorama.Fore.LIGHTBLUE_EX,
-            colorama.Fore.LIGHTMAGENTA_EX
-        ]
-        self.color_negative = colorama.Fore.RED
-        self.color_positive = colorama.Fore.GREEN
+        self.colors = TripleTriadColors
 
     def display_game_state(self, state):
         non_turn_agent = [agent for agent in state.agents if not agent.index == state.get_current_player().index]
@@ -35,13 +39,6 @@ class TripleTriadGraphics:
         else:
             print("Draw")
 
-    def player_turn(self, agent):
-        # Something like input?
-        player_input = input("{}'s turn: ".format(
-            self.colors[agent.index] + agent.get_name() + self.color_reset))
-        result = player_input.split(' ')
-        return int(result[0]) - 1, (int(result[1]), int(result[2]))
-
     def draw_game_board(self, game_board):
         height = game_board.height
         for row_index in range(height):
@@ -54,18 +51,18 @@ class TripleTriadGraphics:
                 if place.has_card:
                     # Create the entire card as a list
                     placed_card = place.placed_card
-                    color = self.colors[place.owner.index]
-                    representation.append(color + ' ▁▁▁▁▁ ' + self.color_reset)
+                    color = self.colors.AGENT_COLORS[place.owner.index]
+                    representation.append(color + ' ▁▁▁▁▁ ' + self.colors.COLOR_RESET)
                     representation.append(color + '|  {} {}|'.format(
                         placed_card.get_rank(Direction.TOP, as_string=True),
-                        self.get_elemental_result(place) + color) + self.color_reset),
+                        self.get_elemental_result(place) + color) + self.colors.COLOR_RESET),
                     representation.append(color + '| {}{}{} |'.format(
                         placed_card.get_rank(Direction.LEFT, as_string=True),
                         self._get_element_char(placed_card.get_element()) or ' ',
-                        placed_card.get_rank(Direction.RIGHT, as_string=True)) + self.color_reset)
+                        placed_card.get_rank(Direction.RIGHT, as_string=True)) + self.colors.COLOR_RESET)
                     representation.append(color + '|  {}  |'.format(
-                        placed_card.get_rank(Direction.BOTTOM, as_string=True)) + self.color_reset)
-                    representation.append(color + ' ▔▔▔▔▔ ' + self.color_reset)
+                        placed_card.get_rank(Direction.BOTTOM, as_string=True)) + self.colors.COLOR_RESET)
+                    representation.append(color + ' ▔▔▔▔▔ ' + self.colors.COLOR_RESET)
                 else:
                     # Create the entire grid space as a list
                     x, y = place.get_coordinates()
@@ -86,9 +83,9 @@ class TripleTriadGraphics:
     def get_elemental_result(self, place):
         if place.has_card:
             if place.has_elemental_conflict():
-                return self.color_negative + '↓' + self.color_reset
+                return self.colors.COLOR_NEGATIVE + '↓' + self.colors.COLOR_RESET
             elif place.has_elemental_agreement():
-                return self.color_positive + '↑' + self.color_reset
+                return self.colors.COLOR_POSITIVE + '↑' + self.colors.COLOR_RESET
         return ' '
 
     def draw_cards(self, cards, agent_index):
@@ -100,14 +97,14 @@ class TripleTriadGraphics:
             self._get_element_char(card.get_element()) or ' ',
             card.get_rank(Direction.RIGHT, as_string=True)) for card in cards])
         bottom_rank = ' '.join(['|  {}  |'.format(card.get_rank(Direction.BOTTOM, as_string=True)) for card in cards])
-        bottom_edge = '  '.join([' ▔▔▔▔▔' for i in cards])
+        bottom_edge = '  '.join([' ▔▔▔▔▔' for _ in cards])
 
-        print(self.colors[agent_index], top_edge, top_rank,
-              middle_ranks, bottom_rank, bottom_edge, self.color_reset, sep="\n")
+        print(self.colors.AGENT_COLORS[agent_index], top_edge, top_rank,
+              middle_ranks, bottom_rank, bottom_edge, self.colors.COLOR_RESET, sep="\n")
 
     def display_score(self, agent):
-        print('Score for {}{}{}: {}'.format(self.colors[agent.index], agent.get_name(),
-                                            self.color_reset, agent.get_score()))
+        print('Score for {}{}{}: {}'.format(self.colors.AGENT_COLORS[agent.index], agent.get_name(),
+                                            self.colors.COLOR_RESET, agent.get_score()))
 
     @staticmethod
     def _get_element_char(element):

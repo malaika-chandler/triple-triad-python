@@ -1,62 +1,8 @@
+from agents import KeyBoardAgent
 from game import Game
 import constants
 # from graphicsdisplay import TripleTriadGraphics
 from textdisplay import TripleTriadGraphics
-
-
-class Agent:
-    def __init__(self, index):
-        self.hand = []
-        self.index = index
-        self.name = "Player {}".format(index + 1)
-        self.score = 0
-
-    def initialize(self):
-        self.hand = []
-        self.score = 0
-
-    def __eq__(self, other):
-        return self.score == other.score
-
-    def __ge__(self, other):
-        return self.score >= other.score
-
-    def __le__(self, other):
-        return self.score <= other.score
-
-    def __lt__(self, other):
-        return self.score < other.score
-
-    def __gt__(self, other):
-        return self.score > other.score
-
-    def __ne__(self, other):
-        return self.score != other.score
-
-    def get_name(self):
-        return self.name
-
-    def get_score(self):
-        return self.score
-
-    def increment_score(self):
-        self.score += 1
-
-    def decrement_score(self):
-        self.score -= 1
-
-    def set_hand(self, dealt_cards):
-        self.hand.clear()
-        self.hand.extend(dealt_cards)
-        self.score = len(dealt_cards)
-
-    def play_card(self, selected_card):
-        if selected_card in self.hand:
-            # Remove card from hand and return
-            self.hand.remove(selected_card)
-            return selected_card
-        # Card not in player's hand
-        return None
 
 
 class Rules:
@@ -110,7 +56,7 @@ class Rules:
 if __name__ == '__main__':
 
     # Set up players
-    agents = [Agent(agent_index) for agent_index in range(constants.NUMBER_OF_PLAYERS)]
+    agents = [KeyBoardAgent(agent_index) for agent_index in range(constants.NUMBER_OF_PLAYERS)]
 
     # Set up display
     display = TripleTriadGraphics()

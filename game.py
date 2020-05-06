@@ -238,7 +238,8 @@ class Game:
             # Get player move
             card_index, coordinates = -1, None
             while not (0 <= card_index < len(legal_cards) and coordinates in legal_grid_spaces):
-                result = self.display.player_turn(current_player)
+                # result = self.display.player_turn(current_player)
+                result = current_player.get_action()
                 card_index, coordinates = result
 
             game_board.place_card(current_player,
