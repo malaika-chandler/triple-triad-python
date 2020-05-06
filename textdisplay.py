@@ -76,9 +76,6 @@ class TripleTriadGraphics:
                     representation.append(' ▔▔▔▔▔ ')
                 individual_grid_representations.append(representation)
 
-            # Grid location height, based on how many lines were appended for each space
-            grid_height = 3
-
             # Get each first list entry, concat, and append to row object
             count_representations = len(individual_grid_representations)
             for line_index in range(len(individual_grid_representations[0])):
@@ -131,8 +128,4 @@ class TripleTriadGraphics:
         elif element == Element.WATER:
             return '☔︎'  # '💧'
         else:
-            return ' '
-
-    # def represent_grid_element(self, grid_space_object):
-    #     if grid_space_object.has
-    #     pass
+            return ''
