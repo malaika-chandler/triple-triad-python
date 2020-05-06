@@ -235,12 +235,7 @@ class Game:
 
             legal_cards, legal_grid_spaces = self.game_state.get_legal_agent_actions(current_player)
 
-            # Get player move
-            card_index, coordinates = -1, None
-            while not (0 <= card_index < len(legal_cards) and coordinates in legal_grid_spaces):
-                # result = self.display.player_turn(current_player)
-                result = current_player.get_action()
-                card_index, coordinates = result
+            card_index, coordinates = current_player.get_action(self.game_state)
 
             game_board.place_card(current_player,
                                   current_player.play_card(legal_cards[card_index]),

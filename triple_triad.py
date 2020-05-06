@@ -1,4 +1,4 @@
-from agents import KeyBoardAgent
+from agents import KeyBoardAgent, FirstAvailableAgent
 from game import Game
 import constants
 # from graphicsdisplay import TripleTriadGraphics
@@ -56,7 +56,11 @@ class Rules:
 if __name__ == '__main__':
 
     # Set up players
-    agents = [KeyBoardAgent(agent_index) for agent_index in range(constants.NUMBER_OF_PLAYERS)]
+    # agents = [KeyBoardAgent(agent_index) for agent_index in range(constants.NUMBER_OF_PLAYERS)]
+    agents = [
+        KeyBoardAgent(0),
+        FirstAvailableAgent(1)
+    ]
 
     # Set up display
     display = TripleTriadGraphics()

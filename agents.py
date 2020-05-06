@@ -12,6 +12,9 @@ class Agent:
         self.hand = []
         self.score = 0
 
+    def get_action(self, game_state):
+        raise NotImplemented("Method needs to be implemented in sub class")
+
     def __eq__(self, other):
         return self.score == other.score
 
@@ -61,10 +64,9 @@ class FirstAvailableAgent(Agent):
         super().__init__(index)
 
     """For Testing: Uses first available card in first available space"""
-    def get_action(self):
-        pass
-
-    pass
+    def get_action(self, game_state):
+        legal_cards, legal_grid_spaces = game_state.get_legal_agent_actions(self)
+        return 0, list(legal_grid_spaces.values())[0].get_coordinates()
 
 
 class KeyBoardAgent(Agent):
@@ -72,17 +74,22 @@ class KeyBoardAgent(Agent):
         super().__init__(index)
         self.self_color = TripleTriadColors.AGENT_COLORS[index]
 
-    def get_action(self):
-        # Something like input?
-        player_input = input("{}'s turn: ".format(
-            self.self_color + self.get_name() + TripleTriadColors.COLOR_RESET))
-        result = player_input.split(' ')
-        return int(result[0]) - 1, (int(result[1]), int(result[2]))
+    def get_action(self, game_state):
+        # Get legal cards/spaces
+        legal_cards, legal_grid_spaces = game_state.get_legal_agent_actions(self)
 
-    pass
+        # Get player move
+        card_index, coordinates = -1, None
+        while not (0 <= card_index < len(legal_cards) and coordinates in legal_grid_spaces):
+            player_input = input("{}'s turn: ".format(
+                        self.self_color + self.get_name() + TripleTriadColors.COLOR_RESET))
+            result = player_input.split(' ')
+            card_index, coordinates = int(result[0]) - 1, (int(result[1]), int(result[2]))
+
+        return card_index, coordinates
 
 
 class MouseAgent(Agent):
-    def get_action(self):
+    def get_action(self, game_state):
         pass
     pass
