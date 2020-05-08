@@ -2,47 +2,76 @@ import constants
 from cards import Cards
 from components import Direction, Element
 import utils
+import copy
 
 
 class GameState:
 
     def __init__(self, agents, rules):
-        self.data = None
-        self.agents = agents
-        self.game_board = Grid(rules)
+        self.data = GameStateData(agents=agents, game_board=Grid(rules))
         self.current_turn_index = 0
+        self.rules = rules
 
         self.initialize()
 
     def initialize(self):
-        self.game_board.initialize()
+        self.data.initialize()
         # Random player goes first
         self.current_turn_index = utils.get_random_player_index(constants.NUMBER_OF_PLAYERS)
 
+    def __deepcopy__(self, memo_dict={}):
+        copied_agents = [copy.deepcopy(agent) for agent in self.data.agents]
+        copied_state = GameState(copied_agents, self.rules)
+        copied_state.data.game_board = copy.deepcopy(self.get_game_board())
+
+        # Update Agent data stored in game board to reflect copied agents
+        copied_state.get_game_board().remap_owners_for_deepcopy(copied_agents)
+
+        return copied_state
+
+    def get_count_turns_remaining(self):
+        return self.data.game_board.count_free_spaces
+
+    def get_agents(self):
+        return self.data.agents
+
     def get_current_player(self):
-        return self.agents[self.current_turn_index]
+        return self.data.agents[self.current_turn_index]
 
     def get_game_board(self):
-        return self.game_board
+        return self.data.game_board
 
     def increment_player_turn(self):
         self.current_turn_index = (self.current_turn_index + 1) % constants.NUMBER_OF_PLAYERS
 
     def get_legal_agent_actions(self, agent):
         legal_cards = agent.hand
-        legal_grid_spaces = self.game_board.get_free_spaces_dict()
+        legal_grid_spaces = self.data.game_board.get_free_spaces_dict()
 
         return legal_cards, legal_grid_spaces
 
+    def generate_successor(self, agent_index, action):
+        # return a copy of the current game state after agent has taken action
+        state_copy = copy.deepcopy(self)
+        card_index, coordinates = action
+        # TODO Make sure card and grid space are legal and valid
+        agent = state_copy.data.agents[agent_index]
+        state_copy.get_game_board().place_card(agent, agent.hand[card_index], coordinates)
+        return state_copy
+
     def get_score(self, agent_index):
-        return self.agents[agent_index].getScore()
+        return self.data.agents[agent_index].get_score()
 
 
 class GameStateData:
 
-    def __init__(self):
+    def __init__(self, agents, game_board):
         # Init game state
-        pass
+        self.agents = agents
+        self.game_board = game_board
+
+    def initialize(self):
+        self.game_board.initialize()
 
 
 class GameBoardLocation:
@@ -60,6 +89,21 @@ class GameBoardLocation:
 
         self.neighbors_coordinates = self._calculate_neighbors(coordinates)
         self.neighbors = {}
+
+    def __deepcopy__(self, memo_dict={}):
+        if self.grid_coordinates in memo_dict:
+            return memo_dict[self.grid_coordinates]
+
+        copy_space = GameBoardLocation(self.grid_coordinates, self.is_elemental_rule_in_play)
+        copy_space.has_card = self.has_card
+        copy_space.placed_card = self.placed_card  # TODO figure out if card should be copied
+        copy_space.has_element = self.has_element
+        copy_space.element = self.element
+        copy_space.owner = self.owner
+        copy_space.neighbors_coordinates = self.neighbors_coordinates
+        memo_dict[self.grid_coordinates] = copy_space
+
+        return copy_space
 
     def initialize(self):
         self.has_card = False
@@ -163,6 +207,25 @@ class Grid:
     def __getitem__(self, coordinates):
         x, y = coordinates
         return self.data[y][x]
+
+    def __deepcopy__(self, memo_dict={}):
+        copy_grid = Grid(self.rules)
+        copy_grid.count_free_spaces = self.count_free_spaces
+        copy_grid.data = [[copy.deepcopy(self[(x, y)]) for x in range(self.width)] for y in range(self.height)]
+
+        # Map copied neighbors to each other
+        for x in range(copy_grid.width):
+            for y in range(copy_grid.height):
+                for key, value in copy_grid[(x, y)].neighbors_coordinates.items():
+                    copy_grid[(x, y)].neighbors[key] = copy_grid[value]
+
+        return copy_grid
+
+    def remap_owners_for_deepcopy(self, copied_agents):
+        for x in range(self.width):
+            for y in range(self.height):
+                if self[(x, y)].owner is not None:
+                    self[(x, y)].set_owner(copied_agents[self[(x, y)].owner.index])
 
     def get_free_spaces_dict(self):
         free_spaces = {}

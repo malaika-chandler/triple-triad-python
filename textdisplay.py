@@ -19,7 +19,7 @@ class TripleTriadGraphics:
         self.colors = TripleTriadColors
 
     def display_game_state(self, state):
-        non_turn_agent = [agent for agent in state.agents if not agent.index == state.get_current_player().index]
+        non_turn_agent = [agent for agent in state.get_agents() if not agent.index == state.get_current_player().index]
         non_turn_agent = non_turn_agent[0]
 
         # Draw agents' hands and game board based on state
@@ -31,7 +31,7 @@ class TripleTriadGraphics:
 
     def display_end_game(self, state):
         self.draw_game_board(state.get_game_board())
-        for agent in state.agents:
+        for agent in state.get_agents():
             self.display_score(agent)
 
         if state.winner:
@@ -76,7 +76,9 @@ class TripleTriadGraphics:
             # Get each first list entry, concat, and append to row object
             count_representations = len(individual_grid_representations)
             for line_index in range(len(individual_grid_representations[0])):
-                row_to_draw.append('  '.join(individual_grid_representations[i][line_index] for i in range(count_representations)))
+                row_to_draw.append('  '.join(
+                    individual_grid_representations[i][line_index] for i in range(count_representations)
+                ))
 
             print('\n'.join(row_to_draw), sep='\n')
 
