@@ -1,8 +1,11 @@
 from agents import KeyBoardAgent, FirstAvailableAgent, MinMaxAgent
 from game import Game
-import constants
 # from graphicsdisplay import TripleTriadGraphics
 from textdisplay import TripleTriadGraphics
+
+import constants
+
+import sys
 
 
 class Rules:
@@ -52,8 +55,34 @@ class Rules:
         return count_cards_flipped
 
 
+def read_command(argv):
+    from optparse import OptionParser
+    usage_str = """
+  USAGE:      python triple_triad.py <options>
+  EXAMPLES:   (1) python triple_triad.py
+                  - starts a game with default rules
+              (2) python triple_triad.py --elemental
+              OR  python triple_triad.py -e
+                  - starts a game using the elemental rule
+  """
+    parser = OptionParser(usage_str)
+    parser.add_option('-e', '--elemental', dest='is_elemental', action='store_true',
+                      help='the game will observe the elemental rule')
+
+    options, junk = parser.parse_args(argv)
+    if len(junk) != 0:
+        raise Exception('Command line input not understood: ' + str(junk))
+
+    parsed_arguments = dict()
+    parsed_arguments['is_elemental'] = options.is_elemental or False
+
+    return parsed_arguments
+
+
 # Entry point for the triple triad game
 if __name__ == '__main__':
+
+    arguments = read_command(sys.argv[1:])
 
     # Set up players
     # agents = [KeyBoardAgent(agent_index) for agent_index in range(constants.NUMBER_OF_PLAYERS)]
@@ -67,7 +96,7 @@ if __name__ == '__main__':
     display = TripleTriadGraphics()
 
     # Set up the rules
-    rules = Rules(is_elemental=True)
+    rules = Rules(is_elemental=arguments['is_elemental'])
 
     # Set up the game
     game = Game(agents, display, rules)
