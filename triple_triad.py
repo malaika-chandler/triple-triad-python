@@ -1,6 +1,5 @@
 from agents import KeyBoardAgent, FirstAvailableAgent, MinMaxAgent
 from game import Game
-# from graphicsdisplay import TripleTriadGraphics
 from textdisplay import TripleTriadGraphics
 
 import constants
@@ -88,7 +87,6 @@ if __name__ == '__main__':
     # agents = [KeyBoardAgent(agent_index) for agent_index in range(constants.NUMBER_OF_PLAYERS)]
     agents = [
         KeyBoardAgent(0),
-        # FirstAvailableAgent(1)
         MinMaxAgent(1)
     ]
 
