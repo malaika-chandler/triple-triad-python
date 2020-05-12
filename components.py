@@ -60,10 +60,10 @@ class Card:
                         '{:^' + half_width + 's}{:^' + half_width + 's}\n' \
                         '{:^' + half_width + 's}{:^' + half_width + 's}\n'
         return format_string.format(self.name,
-                                    self.get_string_rank(self.ranks[Direction.TOP]), 'Element',
-                                    self.get_string_rank(self.ranks[Direction.LEFT]) + ' ' +
-                                    self.get_string_rank(self.ranks[Direction.RIGHT]),
-                                    string_element, self.get_string_rank(self.ranks[Direction.BOTTOM]),
+                                    Card.get_string_rank(self.ranks[Direction.TOP]), 'Element',
+                                    Card.get_string_rank(self.ranks[Direction.LEFT]) + ' ' +
+                                    Card.get_string_rank(self.ranks[Direction.RIGHT]),
+                                    string_element, Card.get_string_rank(self.ranks[Direction.BOTTOM]),
                                     str(self.element))
 
     def __eq__(self, other):
@@ -86,7 +86,7 @@ class Card:
     def get_rank(self, direction, as_string=False):
         if direction in Direction:
             if as_string:
-                return self.get_string_rank(self.ranks[direction])
+                return Card.get_string_rank(self.ranks[direction])
             return self.ranks[direction]
         return -1
 

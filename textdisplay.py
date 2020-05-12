@@ -58,7 +58,7 @@ class TripleTriadGraphics:
                         self.get_elemental_result(place) + color) + self.colors.COLOR_RESET),
                     representation.append(color + '| {}{}{} |'.format(
                         placed_card.get_rank(Direction.LEFT, as_string=True),
-                        self._get_element_char(placed_card.get_element()) or ' ',
+                        TripleTriadGraphics._get_element_char(placed_card.get_element()) or ' ',
                         placed_card.get_rank(Direction.RIGHT, as_string=True)) + self.colors.COLOR_RESET)
                     representation.append(color + '|  {}  |'.format(
                         placed_card.get_rank(Direction.BOTTOM, as_string=True)) + self.colors.COLOR_RESET)
@@ -67,7 +67,8 @@ class TripleTriadGraphics:
                     # Create the entire grid space as a list
                     x, y = place.get_coordinates()
                     representation.append(' ▁▁▁▁▁ ')
-                    representation.append('|  {}  |'.format(self._get_element_char(place.get_element()) or ' '))
+                    representation.append('|  {}  |'.format(
+                        TripleTriadGraphics._get_element_char(place.get_element()) or ' '))
                     representation.append('| {},{} |'.format(x, y))
                     representation.append('|     |')
                     representation.append(' ▔▔▔▔▔ ')
@@ -96,7 +97,7 @@ class TripleTriadGraphics:
         top_rank = ' '.join(['|  {}  |'.format(card.get_rank(Direction.TOP, as_string=True)) for card in cards])
         middle_ranks = ' '.join(['| {}{}{} |'.format(
             card.get_rank(Direction.LEFT, as_string=True),
-            self._get_element_char(card.get_element()) or ' ',
+            TripleTriadGraphics._get_element_char(card.get_element()) or ' ',
             card.get_rank(Direction.RIGHT, as_string=True)) for card in cards])
         bottom_rank = ' '.join(['|  {}  |'.format(card.get_rank(Direction.BOTTOM, as_string=True)) for card in cards])
         bottom_edge = '  '.join([' ▔▔▔▔▔' for _ in cards])

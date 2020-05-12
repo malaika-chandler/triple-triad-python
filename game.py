@@ -87,7 +87,7 @@ class GameBoardLocation:
         self.grid_coordinates = (coordinates[0], coordinates[1])
         self.owner = None
 
-        self.neighbors_coordinates = self._calculate_neighbors(coordinates)
+        self.neighbors_coordinates = GameBoardLocation._calculate_neighbors(coordinates)
         self.neighbors = {}
 
     def __deepcopy__(self, memo_dict={}):
