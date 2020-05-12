@@ -113,11 +113,11 @@ class TripleTriadGraphics:
         if element == Element.FIRE:
             return '♨'  # '🔥'
         elif element == Element.EARTH:
-            return '☄︎'  # '🌏'
+            return '☄'  # '🌏'
         elif element == Element.ICE:
-            return '❄︎'  # '❄️'
+            return '❄'  # '❄️'
         elif element == Element.THUNDER:
-            return '⚡︎'  # '⚡'
+            return '⌁︎'  # '⚡'
         elif element == Element.HOLY:
             return '✟'  # '✨'
         elif element == Element.POISON:
@@ -125,6 +125,6 @@ class TripleTriadGraphics:
         elif element == Element.WIND:
             return '᭝'  # '🌪'
         elif element == Element.WATER:
-            return '☔︎'  # '💧'
+            return '~'  # '☔︎' '💧'
         else:
             return ''
