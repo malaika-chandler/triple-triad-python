@@ -235,7 +235,7 @@ class Grid:
 
         # Create a GameBoardLocation object for each space in the grid
         self.data = [
-            [GameBoardLocation((x, y), is_elemental_rule_in_play=rules.use_elemental_rule()) for x in range(self.width)]
+            [GameBoardLocation((x, y), is_elemental_rule_in_play=rules.is_elemental) for x in range(self.width)]
             for y in range(self.height)]
 
         # Link GameBoardLocations now that they're initialized

@@ -10,11 +10,11 @@ class Rules:
     """Class to handle the application of rules in the Triple Triad game
 
     Attributes:
-        is_elemental (bool): Sets the elemental rule
-        is_same (bool): Sets the same rule
-        is_same_wall (bool): Sets the same wall rule
-        is_plus (bool): Sets the plus rule
-        is_sudden_death (bool): Sets the sudden death rule
+        use_elemental (bool): Sets the elemental rule
+        use_same (bool): Sets the same rule
+        use_same_wall (bool): Sets the same wall rule
+        use_plus (bool): Sets the plus rule
+        use_sudden_death (bool): Sets the sudden death rule
 
     Methods:
         handle_card_placement: handles what happens after a card is placed on the board
@@ -22,35 +22,41 @@ class Rules:
             Currently, only Elemental rule has been implemented
     """
 
-    def __init__(self, is_elemental=False, is_same=False, is_same_wall=False, is_plus=False, is_sudden_death=False):
+    def __init__(self,
+                 use_elemental=False,
+                 use_same=False,
+                 use_same_wall=False,
+                 use_plus=False,
+                 use_sudden_death=False):
         # Open and Random always
-        self.is_open = True
-        self.is_random = True
+        self._is_open = True
+        self._is_random = True
 
         # Card flip rules
-        self.is_elemental = is_elemental
-        self.is_same = is_same
-        self.is_same_wall = is_same and is_same_wall
-        self.is_plus = is_plus
-        self.is_combo = self.is_same or self.is_plus
+        self._is_elemental = use_elemental
+        self._is_same = use_same
+        self._is_same_wall = use_same and use_same_wall
+        self._is_plus = use_plus
+        self._is_combo = self._is_same or self._is_plus
 
         # End of game rules
-        self.is_sudden_death = is_sudden_death
+        self.is_sudden_death = use_sudden_death
 
-    def use_elemental_rule(self):
-        return self.is_elemental
+    @property
+    def is_elemental(self):
+        return self._is_elemental
 
     def handle_card_placement(self, challenger):
         # The challenger contains references to the neighbor spaces/cards
 
         # TODO implement more complicated rules
-        if self.is_same:
+        if self._is_same:
             pass
-        if self.is_same_wall:
+        if self._is_same_wall:
             pass
-        if self.is_plus:
+        if self._is_plus:
             pass
-        if self.is_combo:
+        if self._is_combo:
             pass
 
         # Standard flip rules
@@ -115,11 +121,11 @@ if __name__ == '__main__':
     display = TripleTriadGraphics()
 
     # Set up the rules
-    rules = Rules(is_elemental=arguments['use_elemental_rule'],
-                  is_same=arguments['use_same_rule'],
-                  is_same_wall=arguments['use_same_wall_rule'],
-                  is_plus=arguments['use_plus_rule'],
-                  is_sudden_death=arguments['use_sudden_death_rule'])
+    rules = Rules(use_elemental=arguments['use_elemental_rule'],
+                  use_same=arguments['use_same_rule'],
+                  use_same_wall=arguments['use_same_wall_rule'],
+                  use_plus=arguments['use_plus_rule'],
+                  use_sudden_death=arguments['use_sudden_death_rule'])
 
     # Set up the game
     game = Game(agents, display, rules)
