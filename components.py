@@ -37,6 +37,22 @@ class Direction(Enum):
 
 class Card:
 
+    """Class to represent a card
+
+    Attributes:
+        name (str): The name of the card
+        top (int): The value of the top rank
+        left (int): The value of the left rank
+        right (int): The value of the right rank
+        bottom (int): The value of the bottom rank
+        element (Element): The element of the card
+
+    Methods:
+        get_name: Returns card name
+        get_rank: Returns card rank by direction, with option for string rank
+        get_element: Returns card element
+    """
+
     def __init__(self, name, top, left, right, bottom, element=Element.NONE):
         self.name = name
         self.ranks = {

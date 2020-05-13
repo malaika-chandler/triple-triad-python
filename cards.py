@@ -1,11 +1,12 @@
 from components import Element, Card
 import constants
 
-# import numpy
 import random
 
 
 class Cards:
+
+    """Class to handling generating and dealing cards for game usage"""
 
     def __init__(self):
         self.cards = {
@@ -152,6 +153,9 @@ class Cards:
         return "\n".join("\n".join(str(card) for card in cards) for cards in self.cards.values())
 
     def deal_cards(self):
+        """ Uses a normal distribution to deal cards into hands.
+            Prevents duplicate cards at or above the given level.
+        """
         # TODO use rules to specify distribution of cards to return
 
         # Returns a list of lists of cards by level
@@ -189,6 +193,7 @@ class Cards:
                 hands.append(selected_card)
 
         # Split into separate hands and return
-        return hands[:constants.NUMBER_OF_CARDS_IN_HAND], hands[constants.NUMBER_OF_CARDS_IN_HAND:]
+        return tuple(hands[i:i + constants.NUMBER_OF_CARDS_IN_HAND]
+                     for i in range(0, len(hands), constants.NUMBER_OF_CARDS_IN_HAND))
 
 

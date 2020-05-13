@@ -7,6 +7,26 @@ import copy
 
 class GameState:
 
+    """ Class to handle the state of the game
+
+    Attributes:
+        agents (List[Agent]): The player agents
+        rules (Rules): The game rules
+
+    Methods:
+        initialize: Returns game state to initial state
+        get_count_turns_remaining: Returns the int count of remaining turns
+        get_agents: Returns list of player agents
+        get_current_player: Returns current playing Agent
+        get_game_board: Returns the GameBoard object
+        increment_player_turn: Increments turn index to next player
+        get_legal_agent_actions: Returns a list of legal playable cards and
+            a list of legal playable grid locations for a given player Agent
+        generate_successor: Returns a deepcopy of the game state where a
+            player Agent has placed a given card in a given location
+        get_score: Returns the int score for a given player Agent
+    """
+
     def __init__(self, agents, rules):
         self.data = GameStateData(agents=agents, game_board=Grid(rules))
         self.current_turn_index = 0
@@ -75,6 +95,27 @@ class GameStateData:
 
 
 class GameBoardLocation:
+
+    """ Class to handle the individual spaces on the game board grid
+
+    Attributes:
+        coordinates (Tuple(int)): The x and y coordinates the object is located on the game board
+        is_elemental_rule_in_play (bool): Whether or not elemental rule is in play for the game
+
+    Methods:
+        initialize: Returns the space to a fresh instance
+        place_card: Handles placing a card in the given space
+        set_owner: Handles setting the owner of the space to a given Agent
+        calculate_location_value: Calculates the total rank of a space given a Direction
+        get_coordinates: Returns the coordinates of the GameBoardLocation object
+        get_element: Returns the element of the GameBoardLocation object
+        has_elemental_conflict: Returns true if space has non-NONE element and it doesn't match containing card's
+        has_elemental_agreement: Returns true if space has non-NONE element and it does match the containing card's
+        can_flip: Returns true if the card can flip its neighbor in a given Direction
+        _get_element_for_grid: For initialization purposes; returns an element to assign to the space
+        _calculate_neighbors: For initialization purposes; generates a dictionary of neighboring GameBoardLocations
+    """
+
     def __init__(self, coordinates, is_elemental_rule_in_play=False):
         self.has_card = False
         self.placed_card = None
@@ -179,6 +220,12 @@ class GameBoardLocation:
 
 class Grid:
 
+    """ Class to handle the actual game board grid logic for GameBoardPlaces.
+
+    Attributes:
+        rules (Rules): The rules of the game
+    """
+
     def __init__(self, rules):
         # TODO store elsewhere?
         self.width = constants.GAME_GRID_WIDTH
@@ -188,7 +235,7 @@ class Grid:
 
         # Create a GameBoardLocation object for each space in the grid
         self.data = [
-            [GameBoardLocation((x, y), is_elemental_rule_in_play=rules.is_elemental) for x in range(self.width)]
+            [GameBoardLocation((x, y), is_elemental_rule_in_play=rules.use_elemental_rule()) for x in range(self.width)]
             for y in range(self.height)]
 
         # Link GameBoardLocations now that they're initialized
@@ -254,6 +301,20 @@ class Grid:
 
 
 class Game:
+
+    """ Class that handles the game process
+
+    Attributes:
+        agents (List[Agent]): The players of the game
+        display (Display): The Display class to show game status
+        rules (Rules): The rules the game should use
+
+    Methods:
+        initialize: Handles initializing a Game instance for playing
+        increment_agent_turn: Changes index indicating which Agent's turn it is
+        calculate_winner: Compares Agent's scores and determines the winner
+        run: Handles the actual game loop
+    """
 
     def __init__(self, agents, display, rules):
         self.is_game_over = False
