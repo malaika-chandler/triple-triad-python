@@ -142,6 +142,8 @@ class Cards:
             ],
         }
 
+        self._wall_card = Card('WALL', 10, 10, 10, 10)
+
         # Only one of these cards in play at a time
         self.no_duplicates_in_play_level = 8
 
@@ -151,6 +153,10 @@ class Cards:
         :return:
         """
         return "\n".join("\n".join(str(card) for card in cards) for cards in self.cards.values())
+
+    @property
+    def wall_card(self):
+        return self._wall_card
 
     def deal_cards(self):
         """ Uses a normal distribution to deal cards into hands.
@@ -195,5 +201,4 @@ class Cards:
         # Split into separate hands and return
         return tuple(hands[i:i + constants.NUMBER_OF_CARDS_IN_HAND]
                      for i in range(0, len(hands), constants.NUMBER_OF_CARDS_IN_HAND))
-
 
