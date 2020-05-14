@@ -186,7 +186,7 @@ class Cards:
 
                 # Only one card in play after a certain level
                 # And only one PuPu card!
-                if (card_level >= self.no_duplicates_in_play_level or selected_card.get_name() == 'PuPu') \
+                if (card_level >= self.no_duplicates_in_play_level or selected_card.name == 'PuPu') \
                         and selected_card in hands:
                     continue
 

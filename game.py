@@ -108,7 +108,6 @@ class GameBoardLocation:
         set_owner: Handles setting the owner of the space to a given Agent
         calculate_location_value: Calculates the total rank of a space given a Direction
         get_coordinates: Returns the coordinates of the GameBoardLocation object
-        get_element: Returns the element of the GameBoardLocation object
         has_elemental_conflict: Returns true if space has non-NONE element and it doesn't match containing card's
         has_elemental_agreement: Returns true if space has non-NONE element and it does match the containing card's
         can_flip: Returns true if the card can flip its neighbor in a given Direction
@@ -117,74 +116,86 @@ class GameBoardLocation:
     """
 
     def __init__(self, coordinates, is_elemental_rule_in_play=False):
-        self.has_card = False
-        self.placed_card = None
+        self._has_card = False
+        self._placed_card = None
 
-        self.is_elemental_rule_in_play = is_elemental_rule_in_play
-        self.has_element = False
-        self.element = Element.NONE
+        self._use_elemental_rule = is_elemental_rule_in_play
+        self._has_element = False
+        self._element = Element.NONE
         self._get_element_for_grid()
 
-        self.grid_coordinates = (coordinates[0], coordinates[1])
+        self._grid_coordinates = (coordinates[0], coordinates[1])
         self.owner = None
 
-        self.neighbors_coordinates = GameBoardLocation._calculate_neighbors(coordinates)
+        self._neighbors_coordinates = GameBoardLocation._calculate_neighbors(coordinates)
         self.neighbors = {}
 
     def __deepcopy__(self, memo_dict={}):
-        if self.grid_coordinates in memo_dict:
-            return memo_dict[self.grid_coordinates]
+        if self._grid_coordinates in memo_dict:
+            return memo_dict[self._grid_coordinates]
 
-        copy_space = GameBoardLocation(self.grid_coordinates, self.is_elemental_rule_in_play)
-        copy_space.has_card = self.has_card
-        copy_space.placed_card = self.placed_card  # TODO figure out if card should be copied
-        copy_space.has_element = self.has_element
-        copy_space.element = self.element
+        copy_space = GameBoardLocation(self._grid_coordinates, self._use_elemental_rule)
+        copy_space._has_card = self._has_card
+        copy_space._placed_card = self._placed_card
+        copy_space._has_element = self._has_element
+        copy_space._element = self._element
         copy_space.owner = self.owner
-        copy_space.neighbors_coordinates = self.neighbors_coordinates
-        memo_dict[self.grid_coordinates] = copy_space
+        copy_space._neighbors_coordinates = self._neighbors_coordinates
+        memo_dict[self._grid_coordinates] = copy_space
 
         return copy_space
 
     def initialize(self):
-        self.has_card = False
-        self.placed_card = None
-        self.has_element = False
+        self._has_card = False
+        self._placed_card = None
+        self._has_element = False
         self.owner = None
 
         self._get_element_for_grid()
 
+    @property
+    def has_card(self):
+        return self._has_card
+
+    @property
+    def placed_card(self):
+        return self._placed_card
+
+    @property
+    def neighbors_coordinates(self):
+        return self._neighbors_coordinates
+
     def place_card(self, agent, card):
-        self.has_card = True
-        self.placed_card = card
+        self._has_card = True
+        self._placed_card = card
         self.owner = agent
 
     def set_owner(self, agent):
         self.owner = agent
 
     def calculate_location_value(self, rank_direction):
-        if self.has_card:
+        if self._has_card:
             elemental_addend = 0
-            # TODO Pass data to rules method for specific calculating
-            if self.is_elemental_rule_in_play and self.has_element:
-                if self.element == self.placed_card.get_element():
+            if self._use_elemental_rule:
+                if self.has_elemental_agreement():
                     elemental_addend = 1
-                else:
+                elif self.has_elemental_conflict():
                     elemental_addend = -1
-            return self.placed_card.get_rank(rank_direction) + elemental_addend
+            return self._placed_card.get_rank(rank_direction) + elemental_addend
         return -1
 
     def get_coordinates(self):
-        return self.grid_coordinates
+        return self._grid_coordinates
 
-    def get_element(self):
-        return self.element
+    @property
+    def element(self):
+        return self._element
 
     def has_elemental_conflict(self):
-        return self.has_card and self.element != Element.NONE and self.element != self.placed_card.get_element()
+        return self._has_card and self._element != Element.NONE and self._element != self._placed_card.element
 
     def has_elemental_agreement(self):
-        return self.has_card and self.element != Element.NONE and self.element == self.placed_card.get_element()
+        return self._has_card and self._element != Element.NONE and self._element == self._placed_card.element
 
     def can_flip(self, neighbor, direction):
         if self is neighbor:
@@ -193,15 +204,15 @@ class GameBoardLocation:
         return self.calculate_location_value(direction) > neighbor.calculate_location_value(opposite_direction)
 
     def _get_element_for_grid(self):
-        if self.is_elemental_rule_in_play:
+        if self._use_elemental_rule:
             if utils.flip_coin():
-                self.element = utils.random_choice([e for e in Element])
-                if self.element != Element.NONE:
-                    self.has_element = True
+                self._element = utils.random_choice([e for e in Element])
+                if self._element != Element.NONE:
+                    self._has_element = True
             else:
-                self.element = Element.NONE
+                self._element = Element.NONE
         else:
-            self.element = Element.NONE
+            self._element = Element.NONE
 
     @staticmethod
     def _calculate_neighbors(coordinates):
@@ -228,26 +239,38 @@ class Grid:
 
     def __init__(self, rules):
         # TODO store elsewhere?
-        self.width = constants.GAME_GRID_WIDTH
-        self.height = constants.GAME_GRID_HEIGHT
-        self.count_free_spaces = 0
+        self._width = constants.GAME_GRID_WIDTH
+        self._height = constants.GAME_GRID_HEIGHT
+        self._count_free_spaces = 0
         self.rules = rules
 
         # Create a GameBoardLocation object for each space in the grid
         self.data = [
-            [GameBoardLocation((x, y), is_elemental_rule_in_play=rules.is_elemental) for x in range(self.width)]
-            for y in range(self.height)]
+            [GameBoardLocation((x, y), is_elemental_rule_in_play=rules.is_elemental) for x in range(self._width)]
+            for y in range(self._height)]
 
         # Link GameBoardLocations now that they're initialized
-        for x in range(self.width):
-            for y in range(self.height):
+        for x in range(self._width):
+            for y in range(self._height):
                 for key, value in self[(x, y)].neighbors_coordinates.items():
                     self[(x, y)].neighbors[key] = self[value]
 
         self.initialize()
 
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def height(self):
+        return self._height
+
+    @property
+    def count_free_spaces(self):
+        return self._count_free_spaces
+
     def get_row(self, row_index):
-        if 0 <= row_index < self.height:
+        if 0 <= row_index < self._height:
             return self.data[row_index]
         return None
 
@@ -257,27 +280,27 @@ class Grid:
 
     def __deepcopy__(self, memo_dict={}):
         copy_grid = Grid(self.rules)
-        copy_grid.count_free_spaces = self.count_free_spaces
-        copy_grid.data = [[copy.deepcopy(self[(x, y)]) for x in range(self.width)] for y in range(self.height)]
+        copy_grid._count_free_spaces = self._count_free_spaces
+        copy_grid.data = [[copy.deepcopy(self[(x, y)]) for x in range(self._width)] for y in range(self._height)]
 
         # Map copied neighbors to each other
-        for x in range(copy_grid.width):
-            for y in range(copy_grid.height):
+        for x in range(copy_grid._width):
+            for y in range(copy_grid._height):
                 for key, value in copy_grid[(x, y)].neighbors_coordinates.items():
                     copy_grid[(x, y)].neighbors[key] = copy_grid[value]
 
         return copy_grid
 
     def remap_owners_for_deepcopy(self, copied_agents):
-        for x in range(self.width):
-            for y in range(self.height):
+        for x in range(self._width):
+            for y in range(self._height):
                 if self[(x, y)].owner is not None:
                     self[(x, y)].set_owner(copied_agents[self[(x, y)].owner.index])
 
     def get_free_spaces_dict(self):
         free_spaces = {}
-        for x in range(self.width):
-            for y in range(self.height):
+        for x in range(self._width):
+            for y in range(self._height):
                 if self[(x, y)] is not None and not self[(x, y)].has_card:
                     free_spaces[(x, y)] = (self[(x, y)])
         return free_spaces
@@ -285,19 +308,19 @@ class Grid:
     def place_card(self, agent, card, coordinates):
         if not self[coordinates].has_card:
             self[coordinates].place_card(agent, card)
-            self.count_free_spaces -= 1
+            self._count_free_spaces -= 1
 
             self.rules.handle_card_placement(self[coordinates])
             return True
         return False
 
     def initialize(self):
-        for x in range(self.width):
-            for y in range(self.height):
+        for x in range(self._width):
+            for y in range(self._height):
                 if self[(x, y)] is not None:
                     self[(x, y)].initialize()
 
-        self.count_free_spaces = self.width * self.height
+        self._count_free_spaces = self._width * self._height
 
 
 class Game:
