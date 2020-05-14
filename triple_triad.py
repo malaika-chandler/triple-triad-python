@@ -20,6 +20,8 @@ class Rules:
         handle_card_placement: handles what happens after a card is placed on the board
             using whatever rules are present in a given game and increments Agent scores.
             Currently, only Elemental rule has been implemented
+        _handle_combo:
+        _handle_score_change:
     """
 
     def __init__(self,
@@ -46,27 +48,74 @@ class Rules:
     def is_elemental(self):
         return self._is_elemental
 
+    @property
+    def is_same_wall(self):
+        return self._is_same_wall
+
     def handle_card_placement(self, challenger):
         # The challenger contains references to the neighbor spaces/cards
 
-        # TODO implement more complicated rules
+        count_opposing_player_spaces = 0
+        neighbors_with_cards = {}
+        for direction, neighbor in challenger.neighbors.items():
+            if neighbor.has_card:
+                neighbors_with_cards[direction] = neighbor
+                if neighbor.owner and neighbor.owner.index != challenger.owner.index:
+                    count_opposing_player_spaces += 1
+
         if self._is_same:
-            pass
-        if self._is_same_wall:
-            pass
+            if count_opposing_player_spaces > 0 and len(neighbors_with_cards) > 1:
+                # Same Wall neighbors will be included if added to rules already
+                same_neighbors = {
+                    direction: neighbor
+                    for direction, neighbor in neighbors_with_cards.items()
+                    if challenger.is_equal(neighbor, direction)
+                }
+                if len(same_neighbors) >= 2:
+                    # They will be flipped
+                    # TODO display should be notified of SAME success
+                    print("SAME!")
+                    combo_occurred = False
+                    for direction, neighbor in same_neighbors.items():
+                        neighbor.owner.decrement_score()
+                        neighbor.set_owner(challenger.owner)
+                        challenger.owner.increment_score()
+
+                        if self._is_combo:
+                            # Flip all neighbors of the flipped neighbor with smaller ranks on directional sides
+                            for neighbors_neighbor in neighbor.get_combo_neighbors().values():
+                                if neighbors_neighbor.owner \
+                                        and neighbors_neighbor.owner.index != challenger.owner.index:
+                                    combo_occurred = True
+                                    neighbors_neighbor.owner.decrement_score()
+                                    neighbors_neighbor.set_owner(challenger.owner)
+                                    challenger.owner.increment_score()
+
+                    if combo_occurred:
+                        # TODO display should be notified of COMBO success
+                        print("COMBO!")
+
         if self._is_plus:
-            pass
-        if self._is_combo:
-            pass
+            if count_opposing_player_spaces > 1:
+                # calculations here
+                if self._is_combo:
+                    # calculations here
+                    pass
 
         # Standard flip rules
-        for direction, neighbor in challenger.neighbors.items():
-            if neighbor.has_card and neighbor.owner.index != challenger.owner.index:
+        for direction, neighbor in neighbors_with_cards.items():
+            if neighbor.owner and neighbor.owner.index != challenger.owner.index:
                 # GameBoardLocation checks if element rule in play
                 if challenger.can_flip(neighbor, direction):
                     neighbor.owner.decrement_score()
                     neighbor.set_owner(challenger.owner)
                     challenger.owner.increment_score()
+
+    def _handle_combo(self):
+        pass
+
+    def _handle_score_change(self):
+        pass
 
 
 def read_command(argv):
@@ -84,11 +133,11 @@ def read_command(argv):
                       help='the game will observe the elemental rule')
     parser.add_option('-s', '--same', dest='use_same_rule', action='store_true',
                       help='the game will observe the same rule')
-    parser.add_option('-w', '--same_wall', dest='use_same_wall_rule', action='store_true',
+    parser.add_option('-w', '--same-wall', dest='use_same_wall_rule', action='store_true',
                       help='the game will observe the same wall rule')
     parser.add_option('-p', '--plus', dest='use_plus_rule', action='store_true',
                       help='the game will observe the plus rule')
-    parser.add_option('-d', '--sudden_death', dest='use_sudden_death_rule', action='store_true',
+    parser.add_option('-d', '--sudden-death', dest='use_sudden_death_rule', action='store_true',
                       help='the game will observe the sudden death rule')
 
     options, junk = parser.parse_args(argv)

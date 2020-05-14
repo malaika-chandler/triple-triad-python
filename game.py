@@ -107,19 +107,25 @@ class GameBoardLocation:
         place_card: Handles placing a card in the given space
         set_owner: Handles setting the owner of the space to a given Agent
         calculate_location_value: Calculates the total rank of a space given a Direction
+        get_location_rank: Returns the rank of the placed card given a direction
         get_coordinates: Returns the coordinates of the GameBoardLocation object
+        get_combo_neighbors: Returns all neighbors with smaller adjoining ranks for use with Combo rule
         has_elemental_conflict: Returns true if space has non-NONE element and it doesn't match containing card's
         has_elemental_agreement: Returns true if space has non-NONE element and it does match the containing card's
         can_flip: Returns true if the card can flip its neighbor in a given Direction
+        is_equal: Returns true if the card's and neighbor's card have equal ranks in a given Direction
+        get_sum: Returns sum of the card's and neighbor's card ranks in a given Direction
+        is_greater: Returns true if location rank is greater than neighboring rank
         _get_element_for_grid: For initialization purposes; returns an element to assign to the space
         _calculate_neighbors: For initialization purposes; generates a dictionary of neighboring GameBoardLocations
     """
 
-    def __init__(self, coordinates, is_elemental_rule_in_play=False):
+    def __init__(self, coordinates, is_elemental_rule_in_play=False, is_same_wall_rule_in_play=False):
         self._has_card = False
         self._placed_card = None
 
         self._use_elemental_rule = is_elemental_rule_in_play
+        self._use_same_wall_rule = is_same_wall_rule_in_play
         self._has_element = False
         self._element = Element.NONE
         self._get_element_for_grid()
@@ -127,7 +133,7 @@ class GameBoardLocation:
         self._grid_coordinates = (coordinates[0], coordinates[1])
         self.owner = None
 
-        self._neighbors_coordinates = GameBoardLocation._calculate_neighbors(coordinates)
+        self._neighbors_coordinates = self._calculate_neighbors(coordinates)
         self.neighbors = {}
 
     def __deepcopy__(self, memo_dict={}):
@@ -165,6 +171,10 @@ class GameBoardLocation:
     def neighbors_coordinates(self):
         return self._neighbors_coordinates
 
+    @property
+    def element(self):
+        return self._element
+
     def place_card(self, agent, card):
         self._has_card = True
         self._placed_card = card
@@ -184,12 +194,20 @@ class GameBoardLocation:
             return self._placed_card.get_rank(rank_direction) + elemental_addend
         return -1
 
+    def get_location_rank(self, rank_direction):
+        if self._has_card:
+            return self._placed_card.get_rank(rank_direction)
+        return -1
+
     def get_coordinates(self):
         return self._grid_coordinates
 
-    @property
-    def element(self):
-        return self._element
+    def get_combo_neighbors(self):
+        return {
+            direction: neighbor
+            for direction, neighbor in self.neighbors.items()
+            if self.is_greater(neighbor, direction)
+        }
 
     def has_elemental_conflict(self):
         return self._has_card and self._element != Element.NONE and self._element != self._placed_card.element
@@ -203,6 +221,24 @@ class GameBoardLocation:
         opposite_direction = direction.get_opposite()
         return self.calculate_location_value(direction) > neighbor.calculate_location_value(opposite_direction)
 
+    def is_equal(self, neighbor, direction):
+        if self is neighbor:
+            return False
+        opposite_direction = direction.get_opposite()
+        return self.get_location_rank(direction) == neighbor.get_location_rank(opposite_direction)
+
+    def get_sum(self, neighbor, direction):
+        if self is neighbor:
+            return False
+        opposite_direction = direction.get_opposite()
+        return self.get_location_rank(direction) + neighbor.get_location_rank(opposite_direction)
+
+    def is_greater(self, neighbor, direction):
+        if self is neighbor:
+            return False
+        opposite_direction = direction.get_opposite()
+        return self.get_location_rank(direction) > neighbor.get_location_rank(opposite_direction)
+
     def _get_element_for_grid(self):
         if self._use_elemental_rule:
             if utils.flip_coin():
@@ -214,18 +250,24 @@ class GameBoardLocation:
         else:
             self._element = Element.NONE
 
-    @staticmethod
-    def _calculate_neighbors(coordinates):
+    def _calculate_neighbors(self, coordinates):
         neighbors = {}
         x, y = coordinates
-        if x > 0:
+        if self._use_same_wall_rule:
+            # Walls will be included as "neighbors"
             neighbors[Direction.LEFT] = (x - 1, y)
-        if x < constants.GAME_GRID_WIDTH - 1:
             neighbors[Direction.RIGHT] = (x + 1, y)
-        if y > 0:
             neighbors[Direction.TOP] = (x, y - 1)
-        if y < constants.GAME_GRID_HEIGHT - 1:
             neighbors[Direction.BOTTOM] = (x, y + 1)
+        else:
+            if x > 0:
+                neighbors[Direction.LEFT] = (x - 1, y)
+            if x < constants.GAME_GRID_WIDTH - 1:
+                neighbors[Direction.RIGHT] = (x + 1, y)
+            if y > 0:
+                neighbors[Direction.TOP] = (x, y - 1)
+            if y < constants.GAME_GRID_HEIGHT - 1:
+                neighbors[Direction.BOTTOM] = (x, y + 1)
         return neighbors
 
 
@@ -238,22 +280,29 @@ class Grid:
     """
 
     def __init__(self, rules):
-        # TODO store elsewhere?
         self._width = constants.GAME_GRID_WIDTH
         self._height = constants.GAME_GRID_HEIGHT
         self._count_free_spaces = 0
         self.rules = rules
 
         # Create a GameBoardLocation object for each space in the grid
+        # Pass the game board specific rules needed
         self.data = [
-            [GameBoardLocation((x, y), is_elemental_rule_in_play=rules.is_elemental) for x in range(self._width)]
+            [GameBoardLocation((x, y),
+                               is_elemental_rule_in_play=rules.is_elemental,
+                               is_same_wall_rule_in_play=rules.is_same_wall) for x in range(self._width)]
             for y in range(self._height)]
 
         # Link GameBoardLocations now that they're initialized
         for x in range(self._width):
             for y in range(self._height):
                 for key, value in self[(x, y)].neighbors_coordinates.items():
-                    self[(x, y)].neighbors[key] = self[value]
+                    if value[0] not in range(self._width) or value[1] not in range(self._height):
+                        # This is a wall
+                        self[(x, y)].neighbors[key] = GameBoardLocation(value)
+                        self[(x, y)].neighbors[key].place_card(None, Cards.wall_card)
+                    else:
+                        self[(x, y)].neighbors[key] = self[value]
 
         self.initialize()
 
@@ -287,7 +336,12 @@ class Grid:
         for x in range(copy_grid._width):
             for y in range(copy_grid._height):
                 for key, value in copy_grid[(x, y)].neighbors_coordinates.items():
-                    copy_grid[(x, y)].neighbors[key] = copy_grid[value]
+                    if value[0] not in range(self._width) or value[1] not in range(self._height):
+                        # This is a wall
+                        copy_grid[(x, y)].neighbors[key] = GameBoardLocation(value)
+                        copy_grid[(x, y)].neighbors[key].place_card(None, Cards.wall_card)
+                    else:
+                        copy_grid[(x, y)].neighbors[key] = copy_grid[value]
 
         return copy_grid
 
@@ -367,7 +421,6 @@ class Game:
         # Start the game
         game_board = self.game_state.get_game_board()
 
-        # TODO make this better/easier to read
         # Deal the cards
         hands = self.cards_handler.deal_cards()
         for i in range(constants.NUMBER_OF_PLAYERS):
