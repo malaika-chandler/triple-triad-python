@@ -80,8 +80,8 @@ class Rules:
                         Rules._handle_ownership_change(challenger, neighbor)
 
                         if self._is_combo:
-                            combo_occurred = combo_occurred or \
-                                             self._handle_combo(challenger, neighbor.get_combo_neighbors().values())
+                            combo_result = self._handle_combo(challenger, neighbor.get_combo_neighbors().values())
+                            combo_occurred = combo_occurred or combo_result
 
                     if combo_occurred:
                         # TODO display should be notified of COMBO success
@@ -113,7 +113,8 @@ class Rules:
 
                             if self._is_combo:
                                 neighbors_neighbors = affected_neighbor.get_combo_neighbors().values()
-                                combo_occurred = combo_occurred or self._handle_combo(challenger, neighbors_neighbors)
+                                combo_result = self._handle_combo(challenger, neighbors_neighbors)
+                                combo_occurred = combo_occurred or combo_result
 
                 if combo_occurred:
                     # TODO display should be notified of COMBO success
