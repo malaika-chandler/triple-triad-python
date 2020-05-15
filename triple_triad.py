@@ -77,45 +77,71 @@ class Rules:
                     print("SAME!")
                     combo_occurred = False
                     for direction, neighbor in same_neighbors.items():
-                        neighbor.owner.decrement_score()
-                        neighbor.set_owner(challenger.owner)
-                        challenger.owner.increment_score()
+                        Rules._handle_ownership_change(challenger, neighbor)
 
                         if self._is_combo:
-                            # Flip all neighbors of the flipped neighbor with smaller ranks on directional sides
-                            for neighbors_neighbor in neighbor.get_combo_neighbors().values():
-                                if neighbors_neighbor.owner \
-                                        and neighbors_neighbor.owner.index != challenger.owner.index:
-                                    combo_occurred = True
-                                    neighbors_neighbor.owner.decrement_score()
-                                    neighbors_neighbor.set_owner(challenger.owner)
-                                    challenger.owner.increment_score()
+                            combo_occurred = combo_occurred or \
+                                             self._handle_combo(challenger, neighbor.get_combo_neighbors().values())
 
                     if combo_occurred:
                         # TODO display should be notified of COMBO success
                         print("COMBO!")
 
         if self._is_plus:
-            if count_opposing_player_spaces > 1:
-                # calculations here
-                if self._is_combo:
-                    # calculations here
-                    pass
+            combo_occurred = False
+            if count_opposing_player_spaces > 0:
+                plus_neighbors = {}
+                for direction, neighbor in neighbors_with_cards.items():
+                    # Don't grab the wall entities
+                    if neighbor.owner:
+                        plus_value = challenger.get_sum(neighbor, direction)
+                        if str(plus_value) in plus_neighbors:
+                            plus_neighbors[str(plus_value)][direction] = neighbor
+                        else:
+                            plus_neighbors[str(plus_value)] = {direction: neighbor}
+
+                # Only care about sums with more than one neighbor
+                for affected_neighbors in plus_neighbors.values():
+                    if len(affected_neighbors) >= 2:
+                        # They will be flipped
+                        # TODO display should be notified of PLUS success
+                        print("PLUS!")
+
+                        # These neighbors share a sum with the challenger, so flip them
+                        for affected_neighbor in affected_neighbors.values():
+                            Rules._handle_ownership_change(challenger, affected_neighbor)
+
+                            if self._is_combo:
+                                neighbors_neighbors = affected_neighbor.get_combo_neighbors().values()
+                                combo_occurred = combo_occurred or self._handle_combo(challenger, neighbors_neighbors)
+
+                if combo_occurred:
+                    # TODO display should be notified of COMBO success
+                    print("COMBO!")
 
         # Standard flip rules
         for direction, neighbor in neighbors_with_cards.items():
             if neighbor.owner and neighbor.owner.index != challenger.owner.index:
                 # GameBoardLocation checks if element rule in play
                 if challenger.can_flip(neighbor, direction):
-                    neighbor.owner.decrement_score()
-                    neighbor.set_owner(challenger.owner)
-                    challenger.owner.increment_score()
+                    Rules._handle_ownership_change(challenger, neighbor)
 
-    def _handle_combo(self):
-        pass
+    @staticmethod
+    def _handle_combo(challenger, affected_neighbors):
+        # Flip all neighbors of the flipped neighbor with smaller ranks on directional sides
+        combo_occurred = False
+        for neighbors_neighbor in affected_neighbors:
+            if neighbors_neighbor.owner and neighbors_neighbor.owner.index != challenger.owner.index:
+                combo_occurred = True
+                Rules._handle_ownership_change(challenger, neighbors_neighbor)
 
-    def _handle_score_change(self):
-        pass
+        return combo_occurred
+
+    @staticmethod
+    def _handle_ownership_change(challenger, neighbor):
+        neighbor.owner.decrement_score()
+        neighbor.set_owner(challenger.owner)
+        challenger.owner.increment_score()
 
 
 def read_command(argv):
