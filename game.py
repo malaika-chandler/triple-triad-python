@@ -372,6 +372,9 @@ class Grid:
         for x in range(self._width):
             for y in range(self._height):
                 if self[(x, y)] is not None:
+                    if self.rules.is_sudden_death and self[(x, y)].has_card:
+                        # Put cards owned by players into corresponding hand
+                        self[(x, y)].owner.place_card_in_hand(self[(x, y)].placed_card)
                     self[(x, y)].initialize()
 
         self._count_free_spaces = self._width * self._height
@@ -401,6 +404,7 @@ class Game:
         self.rules = rules
 
         self.game_state = GameState(agents, rules)
+        self.game_board = self.game_state.get_game_board()
         self.agents = agents
 
     def initialize(self):
@@ -417,33 +421,40 @@ class Game:
         else:
             return max(self.agents)
 
+    def main_loop(self):
+        """Main control loop for game play."""
+        while not self.is_game_over:
+            # Player's turn
+            current_player = self.game_state.get_current_player()
+            self.display.display_game_state(self.game_state)
+            legal_cards, legal_grid_spaces = self.game_state.get_legal_agent_actions(current_player)
+            card_index, coordinates = current_player.get_action(self.game_state)
+            self.game_board.place_card(current_player, current_player.play_card(legal_cards[card_index]), coordinates)
+
+            self.is_game_over = self.game_board.count_free_spaces == 0
+            self.increment_agent_turn()
+
     def run(self):
-        # Start the game
-        game_board = self.game_state.get_game_board()
+        """Start the game"""
 
         # Deal the cards
         hands = self.cards_handler.deal_cards()
         for i in range(constants.NUMBER_OF_PLAYERS):
             self.agents[i].set_hand(hands[i])
 
-        """Main control loop for game play."""
-        while not self.is_game_over:
-            # Player's turn
-            current_player = self.game_state.get_current_player()
+        while True:
+            self.main_loop()
 
-            self.display.display_game_state(self.game_state)
+            if self.rules.is_sudden_death and self.calculate_winner() is None:
+                # Sudden death is in effect; prepare for next round
+                self.game_board.initialize()
+                self.is_game_over = False
 
-            legal_cards, legal_grid_spaces = self.game_state.get_legal_agent_actions(current_player)
+            # TODO Tell display sudden death has occurred
+                print("SUDDEN DEATH IN PLAY")
 
-            card_index, coordinates = current_player.get_action(self.game_state)
-
-            game_board.place_card(current_player,
-                                  current_player.play_card(legal_cards[card_index]),
-                                  coordinates)
-
-            self.is_game_over = game_board.count_free_spaces == 0
-
-            self.increment_agent_turn()
+            else:
+                break
 
         self.game_state.winner = self.calculate_winner()
         self.display.display_end_game(self.game_state)

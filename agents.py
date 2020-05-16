@@ -54,6 +54,9 @@ class Agent:
     def decrement_score(self):
         self.score -= 1
 
+    def place_card_in_hand(self, card):
+        self.hand.append(card)
+
     def set_hand(self, dealt_cards):
         self.hand.clear()
         self.hand.extend(dealt_cards)

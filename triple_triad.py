@@ -1,4 +1,4 @@
-from agents import KeyBoardAgent, FirstAvailableAgent, MinMaxAgent
+from agents import KeyBoardAgent, MinMaxAgent
 from game import Game
 from textdisplay import TripleTriadGraphics
 
@@ -42,7 +42,7 @@ class Rules:
         self._is_combo = self._is_same or self._is_plus
 
         # End of game rules
-        self.is_sudden_death = use_sudden_death
+        self._is_sudden_death = use_sudden_death
 
     @property
     def is_elemental(self):
@@ -51,6 +51,10 @@ class Rules:
     @property
     def is_same_wall(self):
         return self._is_same_wall
+
+    @property
+    def is_sudden_death(self):
+        return self._is_sudden_death
 
     def handle_card_placement(self, challenger):
         # The challenger contains references to the neighbor spaces/cards
