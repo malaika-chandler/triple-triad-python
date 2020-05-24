@@ -80,7 +80,7 @@ class GameState:
         return state_copy
 
     def get_score(self, agent_index):
-        return self.data.agents[agent_index].get_score()
+        return self.data.agents[agent_index].score
 
 
 class GameStateData:

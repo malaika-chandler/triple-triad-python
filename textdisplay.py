@@ -35,7 +35,7 @@ class TripleTriadGraphics:
             self.display_score(agent)
 
         if state.winner:
-            print(state.winner.get_name() + " wins!")
+            print(state.winner.name + " wins!")
         else:
             print("Draw")
 
@@ -106,8 +106,8 @@ class TripleTriadGraphics:
               middle_ranks, bottom_rank, bottom_edge, self.colors.COLOR_RESET, sep="\n")
 
     def display_score(self, agent):
-        print('Score for {}{}{}: {}'.format(self.colors.AGENT_COLORS[agent.index], agent.get_name(),
-                                            self.colors.COLOR_RESET, agent.get_score()))
+        print('Score for {}{}{}: {}'.format(self.colors.AGENT_COLORS[agent.index], agent.name,
+                                            self.colors.COLOR_RESET, agent.score))
 
     @staticmethod
     def _get_element_char(element):

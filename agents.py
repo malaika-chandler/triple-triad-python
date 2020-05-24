@@ -1,28 +1,84 @@
 from textdisplay import TripleTriadColors
-import copy
+from abc import ABCMeta, abstractmethod
 
 
 class Agent:
+    """Base class for implementing a game player
+
+    Attributes:
+        index (int): The index of the player
+
+    Methods:
+        initialize: Prepares agent for a new game
+        get_action: Throws NotImplemented error; should be implemented by subclass
+        increment_score: Increments player score by 1
+        decrement_score: Decrements player score by 1
+        place_card_in_hand: Places a given card in the player's hand
+        set_hand: Deals a full hand of cards to the player
+        play_card: Removes a card from the player's hand
+    """
+
+    __metaclass__ = ABCMeta
+
     def __init__(self, index):
-        self.hand = []
-        self.index = index
-        self.name = "Player {}".format(index + 1)
-        self.score = 0
+        self._hand = []
+        self._index = index
+        self._name = "Player {}".format(index + 1)
+        self._score = 0
 
     def __deepcopy__(self, memo_dict={}):
-        copy_agent = Agent(self.index)
-        copy_agent.hand = list(self.hand)
-        copy_agent.name = self.name
-        copy_agent.score = self.score
+        copy_agent = Agent(self._index)
+        copy_agent._hand = list(self._hand)
+        copy_agent._name = self._name
+        copy_agent._score = self._score
 
         return copy_agent
 
     def initialize(self):
-        self.hand = []
-        self.score = 0
+        self._hand = []
+        self._score = 0
 
+    @abstractmethod
     def get_action(self, game_state):
         raise NotImplemented("Method needs to be implemented in sub class")
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def score(self):
+        return self._score
+
+    @property
+    def index(self):
+        return self._index
+
+    @property
+    def hand(self):
+        return self._hand
+
+    def increment_score(self):
+        self._score += 1
+
+    def decrement_score(self):
+        self._score -= 1
+
+    def place_card_in_hand(self, card):
+        self._hand.append(card)
+
+    def set_hand(self, dealt_cards):
+        self._hand.clear()
+        self._hand.extend(dealt_cards)
+        self._score = len(dealt_cards)
+
+    def play_card(self, selected_card):
+        if selected_card in self._hand:
+            # Remove card from hand and return
+            self._hand.remove(selected_card)
+            return selected_card
+        # Card not in player's hand
+        return None
 
     def __eq__(self, other):
         return self.score == other.score
@@ -42,34 +98,6 @@ class Agent:
     def __ne__(self, other):
         return self.score != other.score
 
-    def get_name(self):
-        return self.name
-
-    def get_score(self):
-        return self.score
-
-    def increment_score(self):
-        self.score += 1
-
-    def decrement_score(self):
-        self.score -= 1
-
-    def place_card_in_hand(self, card):
-        self.hand.append(card)
-
-    def set_hand(self, dealt_cards):
-        self.hand.clear()
-        self.hand.extend(dealt_cards)
-        self.score = len(dealt_cards)
-
-    def play_card(self, selected_card):
-        if selected_card in self.hand:
-            # Remove card from hand and return
-            self.hand.remove(selected_card)
-            return selected_card
-        # Card not in player's hand
-        return None
-
 
 class FirstAvailableAgent(Agent):
     def __init__(self, index):
@@ -86,12 +114,11 @@ class MinMaxAgent(Agent):
         super().__init__(index)
 
     def __deepcopy__(self, memo_dict={}):
-        # TODO check if cards need to be deep copied
-        new_agent = MinMaxAgent(self.index)
-        new_agent.index = self.index
-        new_agent.hand = list(self.hand)
-        new_agent.name = self.name
-        new_agent.score = self.score
+        new_agent = MinMaxAgent(self._index)
+        new_agent._index = self._index
+        new_agent._hand = list(self._hand)
+        new_agent._name = self.name
+        new_agent._score = self.score
 
         return new_agent
 
@@ -109,7 +136,7 @@ class MinMaxAgent(Agent):
             for coordinates, grid_space in legal_grid_spaces.items():
                 # Generate possible game state successor
                 result = self.dive_down(
-                    game_state.generate_successor(self.index, (card_index, coordinates)),
+                    game_state.generate_successor(self._index, (card_index, coordinates)),
                     depth
                 )
                 if value < result:
@@ -123,21 +150,21 @@ class MinMaxAgent(Agent):
         current_agent = game_state.get_current_player()
 
         agents = game_state.get_agents()
-        other_player_index = (self.index + 1) % len(agents)
-        current_result = 100 * (agents[self.index].get_score() - agents[other_player_index].get_score())
+        other_player_index = (self._index + 1) % len(agents)
+        current_result = 100 * (agents[self._index].score - agents[other_player_index].score)
         if depth == 0:
             return current_result
 
         legal_cards, legal_grid_spaces = game_state.get_legal_agent_actions(current_agent)
 
-        if current_agent.index == self.index:
+        if current_agent.index == self._index:
             # Maximize own interests
             value = float('-inf')
             for card_index in range(len(legal_cards)):
                 # Go through each available space on the board
                 for coordinates, grid_space in legal_grid_spaces.items():
                     result = self.dive_down(
-                        game_state.generate_successor(self.index, (card_index, coordinates)),
+                        game_state.generate_successor(self._index, (card_index, coordinates)),
                         depth - 1
                     )
                     value = max(value, result + current_result)
@@ -150,7 +177,7 @@ class MinMaxAgent(Agent):
                 # Go through each available space on the board
                 for coordinates, grid_space in legal_grid_spaces.items():
                     result = self.dive_down(
-                        game_state.generate_successor(self.index, (card_index, coordinates)),
+                        game_state.generate_successor(self._index, (card_index, coordinates)),
                         depth - 1
                     )
                     value = max(value, result + current_result)
@@ -163,12 +190,11 @@ class KeyBoardAgent(Agent):
         self.self_color = TripleTriadColors.AGENT_COLORS[index]
 
     def __deepcopy__(self, memo_dict={}):
-        # TODO check if cards need to be deep copied
-        new_agent = KeyBoardAgent(self.index)
-        new_agent.index = self.index
-        new_agent.hand = list(self.hand)
-        new_agent.name = self.name
-        new_agent.score = self.score
+        new_agent = KeyBoardAgent(self._index)
+        new_agent._index = self._index
+        new_agent._hand = list(self._hand)
+        new_agent._name = self._name
+        new_agent._score = self._score
 
         return new_agent
 
@@ -180,7 +206,7 @@ class KeyBoardAgent(Agent):
         card_index, coordinates = -1, None
         while not (0 <= card_index < len(legal_cards) and coordinates in legal_grid_spaces):
             player_input = input("{}'s turn: ".format(
-                        self.self_color + self.get_name() + TripleTriadColors.COLOR_RESET))
+                        self.self_color + self._name + TripleTriadColors.COLOR_RESET))
             result = player_input.split(' ')
             card_index, coordinates = int(result[0]) - 1, (int(result[1]), int(result[2]))
 
