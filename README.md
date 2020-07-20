@@ -8,20 +8,20 @@ To keep my knowledge of python fresh, I implemented a basic version of one of my
   
 ### Prerequisites  
   
-Needs to be run using Python 3.7+  
+Requires Python 3.7+  
   
 ### Installing  
   
 Download and unzip the project then enter the directory and run the game:  
   
 ```  
-python triple_triad.py  
+python triple_triad.py
 ```  
   
 Or to start a game with the elemental rule  
   
 ```  
-python triple_triad.py --elemental  
+python triple_triad.py --elemental
 ```  
   
 ## Acknowledgments  
